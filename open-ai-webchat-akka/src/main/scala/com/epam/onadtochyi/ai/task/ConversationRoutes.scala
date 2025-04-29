@@ -2,7 +2,7 @@ package com.epam.onadtochyi.ai.task
 
 import akka.actor.typed.{ActorRef, ActorSystem}
 import akka.util.Timeout
-import com.epam.onadtochyi.ai.task.registry.{ConversationRegistry, Conversations}
+import com.epam.onadtochyi.ai.task.registry.ConversationRegistry
 
 import scala.concurrent.Future
 import ConversationRegistry._
@@ -25,7 +25,7 @@ class ConversationRoutes (
 
   private implicit val timeout: Timeout = Timeout.create(system.settings.config.getDuration("my-app.routes.ask-timeout"))
 
-  def getConversations(): Future[Conversations] =
+  def getConversations: Future[GetConversationsResponse] =
     conversationRegistry.ask(GetConversations.apply)
   def getConversation(id: String): Future[ConversationActionPerformed] =
     conversationRegistry.ask(GetConversation(id, _))
@@ -58,7 +58,7 @@ class ConversationRoutes (
         pathEnd {
           concat(
             get {
-              complete(getConversations())
+              complete(getConversations)
             }
           )
         },

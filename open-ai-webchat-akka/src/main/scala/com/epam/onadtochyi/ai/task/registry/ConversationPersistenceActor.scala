@@ -14,7 +14,7 @@ object ConversationPersistenceActor {
   sealed trait Command
   final case class SaveConversation(conversation: Conversation, replyTo: ActorRef[ConversationActionPerformed]) extends Command
   final case class LoadConversation(id: UUID, replyTo: ActorRef[ConversationActionPerformed]) extends Command
-  final case class LoadAllConversations(replyTo: ActorRef[Conversations]) extends Command
+  //final case class LoadAllConversations(replyTo: ActorRef[Conversations]) extends Command
   final case class DeleteConversationFromDb(id: UUID, replyTo: ActorRef[ConversationActionPerformed]) extends Command
 
   def apply(database: ConversationDatabase): Behavior[Command] = Behaviors.setup { context =>
@@ -31,7 +31,7 @@ object ConversationPersistenceActor {
 
         replyTo ! ConversationActionPerformed(DONE, conversation = Some(conversation))
         Behaviors.same
-
+/*
       case LoadConversation(id, replyTo) =>
         context.pipeToSelf(database.getById(id)) {
           case Success(maybeConv) =>
@@ -58,7 +58,7 @@ object ConversationPersistenceActor {
           case Failure(ex) =>
             replyTo ! ConversationActionPerformed(ERR, s"Error deleting conversation: ${ex.getMessage}")
         }
-        Behaviors.same
+        Behaviors.same */
     }
   }
 }

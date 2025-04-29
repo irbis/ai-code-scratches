@@ -9,18 +9,15 @@ import scala.collection.immutable
 import scala.util.{Failure, Success, Try}
 import io.jvm.uuid._
 
-final case class Conversations(conversations: immutable.Seq[Conversation])
-
 object ConversationRegistry {
 
   sealed trait Command
-  final case class GetConversations(replyTo: ActorRef[Conversations]) extends Command
+  final case class GetConversations(replyTo: ActorRef[GetConversationsResponse]) extends Command
   final case class CreateConversation(title: String, replyTo: ActorRef[Conversation]) extends Command
   final case class GetConversation(id: String, replyTo: ActorRef[ConversationActionPerformed]) extends Command
   final case class DeleteConversation(id: String, replyTo: ActorRef[ConversationActionPerformed]) extends Command
 
-  //final case class CreateConversationRequest()
-  final case class GetConversationsResponse(maybeConversation: Option[Conversation])
+  final case class GetConversationsResponse(conversations: immutable.Seq[Conversation])
   final case class AiActionPerformed(description: String)
   final case class ConversationActionPerformed(
                                                 status: ConversationActionPerfomedStatus,
@@ -31,20 +28,23 @@ object ConversationRegistry {
     final val ERR_INVALID_UUID_FORMAT = apply(ERR, "Invalid UUID format")
   }
 
-  def apply(): Behavior[Command] = registry(Set.empty)
+  val conversationRepository = new ConversationRepository()
 
-  private def registry(conversations: Set[Conversation]): Behavior[Command] =
+  def apply(): Behavior[Command] = registry()
+
+  private def registry(): Behavior[Command] =
     Behaviors.receiveMessage {
       case GetConversations(replyTo) =>
-        replyTo ! Conversations(conversations.toSeq)
+        val convs = GetConversationsResponse(conversationRepository.getAll)
+        replyTo ! convs
         Behaviors.same
       case CreateConversation(title, replyTo) =>
         val newConversation = Conversation(title = title)
-        replyTo ! newConversation
-        registry(conversations + newConversation)
+        replyTo ! conversationRepository.create(newConversation)
+        Behaviors.same
       case GetConversation(id, replyTo) =>
           Try(UUID.fromString(id)) match {
-          case Success(id) => replyTo ! ConversationActionPerformed(DONE, conversation = conversations.find(_.id == id))
+          case Success(id) => replyTo ! ConversationActionPerformed(DONE, conversation = conversationRepository.getById(id))
           case Failure(_) => replyTo ! ConversationActionPerformed.ERR_INVALID_UUID_FORMAT
         }
         Behaviors.same
@@ -52,10 +52,10 @@ object ConversationRegistry {
         Try(UUID.fromString(id)) match {
           case Success(id) =>
             replyTo ! ConversationActionPerformed(DONE, s"Conversation $id deleted.")
-            registry(conversations.filterNot(_.id == id))
+            conversationRepository.delete(id)
           case Failure(_) =>
             replyTo ! ConversationActionPerformed.ERR_INVALID_UUID_FORMAT
-            Behaviors.same
         }
+        Behaviors.same
     }
 }

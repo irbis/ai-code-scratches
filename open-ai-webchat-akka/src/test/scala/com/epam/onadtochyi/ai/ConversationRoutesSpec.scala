@@ -16,13 +16,13 @@ import org.scalatest.wordspec.AnyWordSpec
 
 class ConversationRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with ScalatestRouteTest {
 
-  lazy val testKit = ActorTestKit()
+  private lazy val testKit = ActorTestKit()
   implicit def typedSystem: ActorSystem[_] = testKit.system
 
   override def createActorSystem(): akka.actor.ActorSystem = testKit.system.classicSystem
 
-  val conversationRegistry = testKit.spawn(ConversationRegistry())
-  lazy val routes = new ConversationRoutes(conversationRegistry).conversationRoutes
+  private val conversationRegistry = testKit.spawn(ConversationRegistry())
+  private lazy val routes = new ConversationRoutes(conversationRegistry).conversationRoutes
 
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
   import io.jvm.uuid._
@@ -40,8 +40,8 @@ class ConversationRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures
       }
     }
 
-    "be able to add convestations (POST /conversations)" in {
-      val request = Post("/conversation/test-conversation")
+    "be able to add convesation (POST /conversations)" in {
+      val request = Post("/conversation/add-new-conversation")
 
       request ~> routes ~> check {
         status shouldBe StatusCodes.Created
@@ -50,12 +50,41 @@ class ConversationRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures
         val conversation = responseAs[Conversation]
         conversation.id.toString should not be empty
         conversation.title should not be empty
-        conversation.title shouldBe "test-conversation"
+        conversation.title shouldBe "add-new-conversation"
+
+        // clean database after test
+        Delete(s"/conversations/${conversation.id}") ~> routes
       }
     }
 
+    "be able to add several convesations (POST /conversations)" in {
+      val convIds = Seq(
+        "add-several-conversations1",
+        "add-several-conversations2",
+        "add-several-conversations3"
+      ).map { convTitle =>
+        Post("/conversation/" + convTitle) ~> routes ~> check { responseAs[Conversation].id }
+      }
+
+      Get("/conversations") ~> routes ~> check {
+        status shouldBe StatusCodes.OK
+        contentType shouldBe ContentTypes.`application/json`
+        val responseConversation = responseAs[GetConversationsResponse]
+        responseConversation.conversations.size shouldBe convIds.size
+        convIds.foreach { convId =>
+          responseConversation.conversations.exists(_.id == convId) shouldBe true
+        }
+
+        // clean database after test
+        convIds.foreach { convId =>
+          Delete(s"/conversations/$convId") ~> routes
+        }
+      }
+
+    }
+
     "be able to get conversation by uuid (GET /conversations/<uuid>)" in {
-      val postRequest = Post("/conversation/test-conversation")
+      val postRequest = Post("/conversation/get-conversation-by-uuid")
 
       postRequest ~> routes ~> check {
         status shouldBe StatusCodes.Created
@@ -69,6 +98,9 @@ class ConversationRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures
           responseConversation.status shouldBe DONE
           responseConversation.conversation.value shouldBe conversation
         }
+
+        // clean database after test
+        Delete(s"/conversations/${conversation.id}") ~> routes
       }
     }
 
@@ -86,25 +118,41 @@ class ConversationRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures
         status shouldBe StatusCodes.OK
         contentType shouldBe ContentTypes.`application/json`
 
-        val responseConversation = responseAs[GetConversationsResponse]
-        responseConversation.maybeConversation shouldBe None
+        val responseConversation = responseAs[ConversationActionPerformed]
+        responseConversation.conversation shouldBe None
       }
     }
 
     "be able to delete conversation (DELETE /conversations)" in {
-      val postRequest = Post("/conversation/test-conversation")
+      val convIds = Seq(
+        "test-conversation1",
+        "test-conversation2",
+        "test-conversation3"
+      ).map { convTitle =>
+          Post("/conversation/" + convTitle) ~> routes ~> check { responseAs[Conversation].id }
+      }
 
-      postRequest ~> routes ~> check {
-        status shouldBe StatusCodes.Created
-        val conversation = responseAs[Conversation]
+      val convIdsToDelete = convIds.head
+      Delete(s"/conversations/$convIdsToDelete") ~> routes ~> check {
+        val responseConversation = responseAs[ConversationActionPerformed]
+        responseConversation.status shouldBe DONE
+        responseConversation.message shouldBe s"Conversation $convIdsToDelete deleted."
+        responseConversation.conversation shouldBe None
+      }
 
-        val deleteRequest = Delete(s"/conversations/${conversation.id}")
-        deleteRequest ~> routes ~> check {
-          val responseConversation = responseAs[ConversationActionPerformed]
-          responseConversation.status shouldBe DONE
-          responseConversation.message shouldBe s"Conversation ${conversation.id} deleted."
-          responseConversation.conversation shouldBe None
-        }
+      Get(s"/conversations/$convIdsToDelete") ~> routes ~> check {
+        status shouldBe StatusCodes.OK
+        contentType shouldBe ContentTypes.`application/json`
+        val responseConversation = responseAs[ConversationActionPerformed]
+        responseConversation.status shouldBe DONE
+        responseConversation.conversation shouldBe None
+      }
+
+      Get("/conversations") ~> routes ~> check {
+        status shouldBe StatusCodes.OK
+        contentType shouldBe ContentTypes.`application/json`
+        val responseConversation = responseAs[GetConversationsResponse]
+        responseConversation.conversations.size shouldBe convIds.size - 1
       }
     }
 
