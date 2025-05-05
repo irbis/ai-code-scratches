@@ -2,17 +2,19 @@ package com.epam.onadtochyi.ai
 
 import akka.actor.testkit.typed.scaladsl.ActorTestKit
 import akka.actor.typed.ActorSystem
-import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.http.scaladsl.model._
+import akka.http.scaladsl.testkit.ScalatestRouteTest
 import com.epam.onadtochyi.ai.task.AiJsonFormats._
 import com.epam.onadtochyi.ai.task.ConversationRoutes
-import com.epam.onadtochyi.ai.task.dto.Conversation
 import com.epam.onadtochyi.ai.task.registry.ConversationActionPerfomedStatus.DONE
-import com.epam.onadtochyi.ai.task.registry.ConversationRegistry
-import com.epam.onadtochyi.ai.task.registry.ConversationRegistry.{AiActionPerformed, ConversationActionPerformed, GetConversationsResponse}
+import com.epam.onadtochyi.ai.task.registry.ConversationRegistry.{ConversationActionPerformed, GetConversationsResponse}
+import com.epam.onadtochyi.ai.task.registry.{ConversationDatabase, ConversationRegistry}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import slick.jdbc.HsqldbProfile.api._
+
+import scala.concurrent.duration.DurationInt
 
 class ConversationRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with ScalatestRouteTest {
 
@@ -21,12 +23,31 @@ class ConversationRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures
 
   override def createActorSystem(): akka.actor.ActorSystem = testKit.system.classicSystem
 
-  private val conversationRegistry = testKit.spawn(ConversationRegistry())
+  val db = Database.forURL(
+    url  = "jdbc:hsqldb:mem:aitestdb;shutdown=false",
+    driver = "org.hsqldb.jdbcDriver"
+  )
+
+  val conversationDb = new ConversationDatabase(db)
+
+  private val conversationRegistry = testKit.spawn(ConversationRegistry(conversationDb))
   private lazy val routes = new ConversationRoutes(conversationRegistry).conversationRoutes
 
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
   import io.jvm.uuid._
   import org.scalatest.OptionValues._
+
+  implicit override val patienceConfig: PatienceConfig = PatienceConfig(timeout = 5.seconds, interval = 100.millis)
+
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+    conversationDb.createSchema().futureValue
+  }
+
+  override def afterAll(): Unit = {
+    db.close()
+    super.afterAll()
+  }
 
   "ConversationRoutes" should {
     "return no users if no present (GET /conversations)" in {
@@ -47,13 +68,13 @@ class ConversationRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures
         status shouldBe StatusCodes.Created
         contentType shouldBe ContentTypes.`application/json`
 
-        val conversation = responseAs[Conversation]
-        conversation.id.toString should not be empty
-        conversation.title should not be empty
-        conversation.title shouldBe "add-new-conversation"
+        val actionPerformed = responseAs[ConversationActionPerformed]
+        actionPerformed.status shouldBe DONE
+        actionPerformed.conversation shouldBe defined
+        actionPerformed.conversation.get.title shouldBe "add-new-conversation"
 
         // clean database after test
-        Delete(s"/conversations/${conversation.id}") ~> routes
+        Delete(s"/conversations/${actionPerformed.conversation.get}") ~> routes
       }
     }
 
@@ -63,7 +84,8 @@ class ConversationRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures
         "add-several-conversations2",
         "add-several-conversations3"
       ).map { convTitle =>
-        Post("/conversation/" + convTitle) ~> routes ~> check { responseAs[Conversation].id }
+        Post("/conversation/" + convTitle) ~> routes ~> check {
+          responseAs[ConversationActionPerformed].conversation.get.id }
       }
 
       Get("/conversations") ~> routes ~> check {
@@ -88,19 +110,19 @@ class ConversationRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures
 
       postRequest ~> routes ~> check {
         status shouldBe StatusCodes.Created
-        val conversation = responseAs[Conversation]
+        val createConvActionPerformed = responseAs[ConversationActionPerformed]
 
-        val getRequest = Get(s"/conversations/${conversation.id}")
+        val getRequest = Get(s"/conversations/${createConvActionPerformed.conversation.get.id}")
         getRequest ~> routes ~> check {
           status shouldBe StatusCodes.OK
           contentType shouldBe ContentTypes.`application/json`
           val responseConversation = responseAs[ConversationActionPerformed]
           responseConversation.status shouldBe DONE
-          responseConversation.conversation.value shouldBe conversation
+          responseConversation.conversation.value shouldBe createConvActionPerformed.conversation.value
         }
 
         // clean database after test
-        Delete(s"/conversations/${conversation.id}") ~> routes
+        Delete(s"/conversations/${createConvActionPerformed.conversation.get.id}") ~> routes
       }
     }
 
@@ -129,7 +151,7 @@ class ConversationRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures
         "test-conversation2",
         "test-conversation3"
       ).map { convTitle =>
-          Post("/conversation/" + convTitle) ~> routes ~> check { responseAs[Conversation].id }
+          Post("/conversation/" + convTitle) ~> routes ~> check { responseAs[ConversationActionPerformed].conversation.get.id }
       }
 
       val convIdsToDelete = convIds.head

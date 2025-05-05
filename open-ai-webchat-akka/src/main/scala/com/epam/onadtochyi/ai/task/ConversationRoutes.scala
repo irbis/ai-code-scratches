@@ -1,17 +1,16 @@
 package com.epam.onadtochyi.ai.task
 
-import akka.actor.typed.{ActorRef, ActorSystem}
-import akka.util.Timeout
-import com.epam.onadtochyi.ai.task.registry.ConversationRegistry
-
-import scala.concurrent.Future
-import ConversationRegistry._
 import akka.actor.typed.scaladsl.AskPattern._
+import akka.actor.typed.{ActorRef, ActorSystem}
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import com.epam.onadtochyi.ai.task.dto.Conversation
+import akka.util.Timeout
 import com.epam.onadtochyi.ai.task.registry.ConversationActionPerfomedStatus._
+import com.epam.onadtochyi.ai.task.registry.ConversationRegistry
+import com.epam.onadtochyi.ai.task.registry.ConversationRegistry._
+
+import scala.concurrent.Future
 
 class ConversationRoutes (
                          conversationRegistry: ActorRef[ConversationRegistry.Command]
@@ -20,8 +19,8 @@ class ConversationRoutes (
                            implicit val system: ActorSystem[_]
                          )
 {
-  import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
   import AiJsonFormats._
+  import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 
   private implicit val timeout: Timeout = Timeout.create(system.settings.config.getDuration("my-app.routes.ask-timeout"))
 
@@ -29,7 +28,7 @@ class ConversationRoutes (
     conversationRegistry.ask(GetConversations.apply)
   def getConversation(id: String): Future[ConversationActionPerformed] =
     conversationRegistry.ask(GetConversation(id, _))
-  def createConversation(title: String): Future[Conversation] =
+  def createConversation(title: String): Future[ConversationActionPerformed] =
     conversationRegistry.ask(CreateConversation(title, _))
   def deleteConversation(id: String): Future[ConversationActionPerformed] =
     conversationRegistry.ask(DeleteConversation(id, _))

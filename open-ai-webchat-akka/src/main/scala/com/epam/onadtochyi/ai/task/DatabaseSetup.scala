@@ -13,5 +13,7 @@ object DatabaseSetup {
 
   def init(): Future[Unit] = {
     conversationDb.createSchema()
+      .map(_ => println("Database schema created"))
+      .recover({ case ex => println(s"Error creating database schema: ${ex.getMessage}") })
   }
 }
