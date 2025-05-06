@@ -4,6 +4,8 @@ import com.epam.onadtochyi.ai.task.AiJsonFormats.JsonFormats.enumFormat
 import com.epam.onadtochyi.ai.task.dto.Conversation
 import com.epam.onadtochyi.ai.task.conversation.ConversationRegistry.{AiActionPerformed, ConversationActionPerformed, GetConversationsResponse}
 import com.epam.onadtochyi.ai.task.conversation.ConversationActionPerfomedStatus
+import com.epam.onadtochyi.ai.task.conversationmessage.ConversationMessageRepositoryActor.{ConversationMessageActionPerformed, CreateConversationMessageRequest}
+import com.epam.onadtochyi.ai.task.dto.Role
 import io.jvm.uuid.UUID
 import spray.json._
 
@@ -38,4 +40,9 @@ object AiJsonFormats {
   implicit val aiActionPerformedJsonFormat: RootJsonFormat[AiActionPerformed] = jsonFormat1(AiActionPerformed.apply)
   implicit val conversationActionPerfomedStatus: RootJsonFormat[ConversationActionPerfomedStatus.Value] = enumFormat(ConversationActionPerfomedStatus)
   implicit val conversationActionPerformedJsonFormat: RootJsonFormat[ConversationActionPerformed] = jsonFormat3(ConversationActionPerformed.apply)
+
+  implicit val messageRole: RootJsonFormat[Role.Value] = enumFormat(com.epam.onadtochyi.ai.task.dto.Role)
+  implicit val createConversationMessageRequestFormat: RootJsonFormat[CreateConversationMessageRequest] = jsonFormat3(CreateConversationMessageRequest.apply)
+  implicit val messageFormat: RootJsonFormat[com.epam.onadtochyi.ai.task.dto.Message] = jsonFormat3(com.epam.onadtochyi.ai.task.dto.Message.apply)
+  implicit val conversationMessageActionPerformed: RootJsonFormat[ConversationMessageActionPerformed] = jsonFormat3(ConversationMessageActionPerformed.apply)
 }
