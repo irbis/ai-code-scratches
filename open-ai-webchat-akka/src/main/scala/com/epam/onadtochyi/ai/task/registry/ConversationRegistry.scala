@@ -28,11 +28,11 @@ object ConversationRegistry {
     final val ERR_INVALID_UUID_FORMAT = apply(ERR, "Invalid UUID format")
 
     def apply(conversation:Option[Conversation]): ConversationActionPerformed =
-      ConversationActionPerformed(DONE, "", conversation)
+      ConversationActionPerformed(DONE, conversation = conversation)
   }
 
   private final case class WrappedGetConversationsResponse(
-                                                      convRows: Seq[ConversationRow],
+                                                      convRows: Seq[Conversation],
                                                       replyTo: ActorRef[GetConversationsResponse]
                                                     ) extends Command
 
@@ -40,10 +40,11 @@ object ConversationRegistry {
                                                       conversationAction: ConversationActionPerformed,
                                                       replyTo: ActorRef[ConversationActionPerformed]
                                                       ) extends Command
+
   private object WrappedConversationActionPerformed {
-    def apply(conversationRow: Option[ConversationRow], replyTo: ActorRef[ConversationActionPerformed]): WrappedConversationActionPerformed =
+    def apply(conversation: Option[Conversation], replyTo: ActorRef[ConversationActionPerformed]): WrappedConversationActionPerformed =
       WrappedConversationActionPerformed(
-        ConversationActionPerformed(conversationRow.map(toConversation)),
+        ConversationActionPerformed(conversation),
         replyTo)
 
     def apply(message: String, replyTo: ActorRef[ConversationActionPerformed]): WrappedConversationActionPerformed =
@@ -57,17 +58,20 @@ object ConversationRegistry {
         replyTo)
   }
 
+  private def toConversation(cRow: ConversationRow) = Conversation(cRow.id, cRow.title)
+  private def toConversationRow(c: Conversation) = ConversationRow(c.id, c.title)
+
   def apply(conversationDatabase: ConversationDatabase): Behavior[Command] = Behaviors.setup { context =>
 
     Behaviors.receiveMessage {
       case GetConversations(replyTo) =>
         context.pipeToSelf(conversationDatabase.getAllConversations) {
-          case Success(convRows) => WrappedGetConversationsResponse(convRows, replyTo)
+          case Success(convRows) => WrappedGetConversationsResponse(convRows.map(toConversation), replyTo)
           case Failure(_) => WrappedGetConversationsResponse(Seq.empty, replyTo)
         }
         Behaviors.same
-      case WrappedGetConversationsResponse(convRows, replyTo) =>
-        replyTo ! GetConversationsResponse(convRows.map(toConversation))
+      case WrappedGetConversationsResponse(conversations, replyTo) =>
+        replyTo ! GetConversationsResponse(conversations)
         Behaviors.same
 
       case CreateConversation(title, replyTo) =>
@@ -83,7 +87,7 @@ object ConversationRegistry {
         Try(UUID.fromString(id)) match {
           case Success(id) =>
             context.pipeToSelf(conversationDatabase.getById(id)) {
-              case Success(conversationRow) => WrappedConversationActionPerformed(conversationRow, replyTo)
+              case Success(conversationRow) => WrappedConversationActionPerformed(conversationRow.map(toConversation), replyTo)
               case Failure(ex) => WrappedConversationActionPerformed(ex, replyTo)
             }
           case Failure(_) => replyTo ! ConversationActionPerformed.ERR_INVALID_UUID_FORMAT
@@ -105,11 +109,8 @@ object ConversationRegistry {
       case WrappedConversationActionPerformed(conversationActionPerformed, replyTo) =>
         replyTo ! conversationActionPerformed
         Behaviors.same
-
     }
   }
 
-  private def toConversation(cRow: ConversationRow) = Conversation(cRow.id, cRow.title)
-  private def toConversationRow(c: Conversation) = ConversationRow(c.id, c.title)
 
 }
