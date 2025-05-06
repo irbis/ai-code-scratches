@@ -1,6 +1,6 @@
 package com.epam.onadtochyi.ai.task
 
-import com.epam.onadtochyi.ai.task.registry.ConversationDatabase
+import com.epam.onadtochyi.ai.task.conversation.ConversationDatabase
 import slick.jdbc.HsqldbProfile.api._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -13,5 +13,7 @@ object DatabaseSetup {
 
   def init(): Future[Unit] = {
     conversationDb.createSchema()
+      .map(_ => println("Database schema created"))
+      .recover({ case ex => println(s"Error creating database schema: ${ex.getMessage}") })
   }
 }

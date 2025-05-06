@@ -1,6 +1,7 @@
-package com.epam.onadtochyi.ai.task.registry
+package com.epam.onadtochyi.ai.task.conversation
 
 import slick.jdbc.HsqldbProfile.api._
+
 import scala.concurrent.{ExecutionContext, Future}
 import io.jvm.uuid._
 
@@ -28,7 +29,11 @@ class ConversationDatabase(db: Database)(implicit ec: ExecutionContext) {
     db.run(conversations.filter(_.id === id).result.headOption)
   }
 
-  def getAllConversations(): Future[Seq[ConversationRow]] = {
+  def getAllConversations: Future[Seq[ConversationRow]] = {
     db.run(conversations.result)
+  }
+
+  def deleteConversation(id: UUID): Future[Int] = {
+    db.run(conversations.filter(_.id === id).delete)
   }
 }
