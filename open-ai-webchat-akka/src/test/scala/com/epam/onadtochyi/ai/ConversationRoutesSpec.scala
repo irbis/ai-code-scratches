@@ -8,7 +8,7 @@ import com.epam.onadtochyi.ai.task.AiJsonFormats._
 import com.epam.onadtochyi.ai.task.ConversationRoutes
 import com.epam.onadtochyi.ai.task.registry.ConversationActionPerfomedStatus.DONE
 import com.epam.onadtochyi.ai.task.registry.ConversationRegistry.{ConversationActionPerformed, GetConversationsResponse}
-import com.epam.onadtochyi.ai.task.registry.{ConversationDatabase, ConversationRegistry}
+import com.epam.onadtochyi.ai.task.registry.{ConversationDatabase, ConversationRegistry, ConversationsTable}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -49,6 +49,14 @@ class ConversationRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures
     super.afterAll()
   }
 
+  def withCleanDatabase[T](testCode: => T): T = {
+    try {
+      testCode
+    } finally {
+      db.run(TableQuery[ConversationsTable].delete).futureValue
+    }
+  }
+  
   "ConversationRoutes" should {
     "return no users if no present (GET /conversations)" in {
       val request = HttpRequest(uri = "/conversations")
@@ -61,7 +69,7 @@ class ConversationRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures
       }
     }
 
-    "be able to add convesation (POST /conversations)" in {
+    "be able to add convesation (POST /conversations)" in withCleanDatabase {
       val request = Post("/conversation/add-new-conversation")
 
       request ~> routes ~> check {
@@ -72,13 +80,10 @@ class ConversationRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures
         actionPerformed.status shouldBe DONE
         actionPerformed.conversation shouldBe defined
         actionPerformed.conversation.get.title shouldBe "add-new-conversation"
-
-        // clean database after test
-        Delete(s"/conversations/${actionPerformed.conversation.get}") ~> routes
       }
     }
 
-    "be able to add several convesations (POST /conversations)" in {
+    "be able to add several convesations (POST /conversations)" in withCleanDatabase {
       val convIds = Seq(
         "add-several-conversations1",
         "add-several-conversations2",
@@ -96,16 +101,10 @@ class ConversationRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures
         convIds.foreach { convId =>
           responseConversation.conversations.exists(_.id == convId) shouldBe true
         }
-
-        // clean database after test
-        convIds.foreach { convId =>
-          Delete(s"/conversations/$convId") ~> routes
-        }
       }
-
     }
 
-    "be able to get conversation by uuid (GET /conversations/<uuid>)" in {
+    "be able to get conversation by uuid (GET /conversations/<uuid>)" in withCleanDatabase {
       val postRequest = Post("/conversation/get-conversation-by-uuid")
 
       postRequest ~> routes ~> check {
@@ -120,9 +119,6 @@ class ConversationRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures
           responseConversation.status shouldBe DONE
           responseConversation.conversation.value shouldBe createConvActionPerformed.conversation.value
         }
-
-        // clean database after test
-        Delete(s"/conversations/${createConvActionPerformed.conversation.get.id}") ~> routes
       }
     }
 
