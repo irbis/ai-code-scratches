@@ -78,6 +78,7 @@ class ConversationRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures
 
         val actionPerformed = responseAs[ConversationActionPerformed]
         actionPerformed.status shouldBe DONE
+        actionPerformed.message shouldBe "Conversation add-new-conversation created."
         actionPerformed.conversation shouldBe defined
         actionPerformed.conversation.get.title shouldBe "add-new-conversation"
       }

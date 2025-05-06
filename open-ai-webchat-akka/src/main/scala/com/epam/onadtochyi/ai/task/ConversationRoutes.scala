@@ -22,15 +22,15 @@ class ConversationRoutes (
   import AiJsonFormats._
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 
-  private implicit val timeout: Timeout = Timeout.create(system.settings.config.getDuration("my-app.routes.ask-timeout"))
+  private implicit val timeout: Timeout = Timeout.create(system.settings.config.getDuration("ai-web-chat-app.routes.ask-timeout"))
 
-  def getConversations: Future[GetConversationsResponse] =
+  private def getConversations: Future[GetConversationsResponse] =
     conversationRegistry.ask(GetConversations.apply)
-  def getConversation(id: String): Future[ConversationActionPerformed] =
+  private def getConversation(id: String): Future[ConversationActionPerformed] =
     conversationRegistry.ask(GetConversation(id, _))
-  def createConversation(title: String): Future[ConversationActionPerformed] =
+  private def createConversation(title: String): Future[ConversationActionPerformed] =
     conversationRegistry.ask(CreateConversation(title, _))
-  def deleteConversation(id: String): Future[ConversationActionPerformed] =
+  private def deleteConversation(id: String): Future[ConversationActionPerformed] =
     conversationRegistry.ask(DeleteConversation(id, _))
 
   private def conversationActionPerformedToRoute(performed: ConversationActionPerformed) =

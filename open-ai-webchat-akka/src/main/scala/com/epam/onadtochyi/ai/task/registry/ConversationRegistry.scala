@@ -73,7 +73,8 @@ object ConversationRegistry {
       case CreateConversation(title, replyTo) =>
         val newConversation = Conversation(title = title)
         context.pipeToSelf(conversationDatabase.insert(toConversationRow(newConversation))) {
-          case Success(_) => WrappedConversationActionPerformed(ConversationActionPerformed(DONE, conversation = Option(newConversation)), replyTo)
+          case Success(_) => WrappedConversationActionPerformed(ConversationActionPerformed(
+            DONE, s"Conversation ${newConversation.title} created.", Option(newConversation)), replyTo)
           case Failure(ex) => WrappedConversationActionPerformed(ex, replyTo)
         }
         Behaviors.same

@@ -10,7 +10,7 @@ import scala.util.{Failure, Success}
 
 object AiWebChatApp {
 
-  private def startHttpServer(routes: Route)(implicit system: ActorSystem[_]) = {
+  private def startHttpServer(routes: Route)(implicit system: ActorSystem[_]): Unit = {
     import system.executionContext
 
     val futureBinding = Http().newServerAt("localhost", 8080).bind(routes)
@@ -28,12 +28,13 @@ object AiWebChatApp {
     DatabaseSetup.init()
 
     val rootBehavior = Behaviors.setup[Nothing] { context => // create root actor in Akka applications, typical usage
+      implicit val system: ActorSystem[Nothing] = context.system
       // this like new Class() but for actor - creates new object of actor
       val conversationRegistryActor = context.spawn(ConversationRegistry(DatabaseSetup.conversationDb), "ConversationRegistryActor")
       context.watch(conversationRegistryActor) // is watching for actors life cycle
 
-      val routes = new ConversationRoutes(conversationRegistryActor)(context.system)
-      startHttpServer(routes.conversationRoutes)(context.system)
+      val routes = new ConversationRoutes(conversationRegistryActor)
+      startHttpServer(routes.conversationRoutes)
 
       Behaviors.empty
     }
