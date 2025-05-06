@@ -1,4 +1,4 @@
-package com.epam.onadtochyi.ai.task.registry
+package com.epam.onadtochyi.ai.task.conversation
 
 import slick.jdbc.HsqldbProfile.api._
 

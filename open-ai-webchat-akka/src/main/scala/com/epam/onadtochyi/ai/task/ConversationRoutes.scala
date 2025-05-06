@@ -6,9 +6,9 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.util.Timeout
-import com.epam.onadtochyi.ai.task.registry.ConversationActionPerfomedStatus._
-import com.epam.onadtochyi.ai.task.registry.ConversationRegistry
-import com.epam.onadtochyi.ai.task.registry.ConversationRegistry._
+import com.epam.onadtochyi.ai.task.conversation.ConversationActionPerfomedStatus._
+import com.epam.onadtochyi.ai.task.conversation.ConversationRegistry
+import com.epam.onadtochyi.ai.task.conversation.ConversationRegistry._
 
 import scala.concurrent.Future
 

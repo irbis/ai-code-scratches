@@ -1,4 +1,4 @@
-package com.epam.onadtochyi.ai.task.registry
+package com.epam.onadtochyi.ai.task.conversation
 
 object ConversationActionPerfomedStatus extends Enumeration {
   type ConversationActionPerfomedStatus = Value

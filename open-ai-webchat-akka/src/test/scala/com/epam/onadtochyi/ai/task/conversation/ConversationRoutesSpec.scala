@@ -1,4 +1,4 @@
-package com.epam.onadtochyi.ai
+package com.epam.onadtochyi.ai.task.conversation
 
 import akka.actor.testkit.typed.scaladsl.ActorTestKit
 import akka.actor.typed.ActorSystem
@@ -6,9 +6,8 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import com.epam.onadtochyi.ai.task.AiJsonFormats._
 import com.epam.onadtochyi.ai.task.ConversationRoutes
-import com.epam.onadtochyi.ai.task.registry.ConversationActionPerfomedStatus.DONE
-import com.epam.onadtochyi.ai.task.registry.ConversationRegistry.{ConversationActionPerformed, GetConversationsResponse}
-import com.epam.onadtochyi.ai.task.registry.{ConversationDatabase, ConversationRegistry, ConversationsTable}
+import com.epam.onadtochyi.ai.task.conversation.ConversationActionPerfomedStatus.DONE
+import com.epam.onadtochyi.ai.task.conversation.ConversationRegistry.{ConversationActionPerformed, GetConversationsResponse}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec

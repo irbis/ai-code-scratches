@@ -1,9 +1,9 @@
-package com.epam.onadtochyi.ai.task.registry
+package com.epam.onadtochyi.ai.task.conversation
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 import com.epam.onadtochyi.ai.task.dto.Conversation
-import com.epam.onadtochyi.ai.task.registry.ConversationActionPerfomedStatus.{ConversationActionPerfomedStatus, DONE, ERR}
+import com.epam.onadtochyi.ai.task.conversation.ConversationActionPerfomedStatus.{ConversationActionPerfomedStatus, DONE, ERR}
 import io.jvm.uuid._
 
 import scala.collection.immutable

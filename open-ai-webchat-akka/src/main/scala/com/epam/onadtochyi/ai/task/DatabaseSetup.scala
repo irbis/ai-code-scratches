@@ -1,6 +1,6 @@
 package com.epam.onadtochyi.ai.task
 
-import com.epam.onadtochyi.ai.task.registry.ConversationDatabase
+import com.epam.onadtochyi.ai.task.conversation.ConversationDatabase
 import slick.jdbc.HsqldbProfile.api._
 
 import scala.concurrent.{ExecutionContext, Future}

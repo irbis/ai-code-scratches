@@ -2,8 +2,8 @@ package com.epam.onadtochyi.ai.task
 
 import com.epam.onadtochyi.ai.task.AiJsonFormats.JsonFormats.enumFormat
 import com.epam.onadtochyi.ai.task.dto.Conversation
-import com.epam.onadtochyi.ai.task.registry.ConversationRegistry.{AiActionPerformed, ConversationActionPerformed, GetConversationsResponse}
-import com.epam.onadtochyi.ai.task.registry.ConversationActionPerfomedStatus
+import com.epam.onadtochyi.ai.task.conversation.ConversationRegistry.{AiActionPerformed, ConversationActionPerformed, GetConversationsResponse}
+import com.epam.onadtochyi.ai.task.conversation.ConversationActionPerfomedStatus
 import io.jvm.uuid.UUID
 import spray.json._
 

@@ -4,7 +4,7 @@ import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Route
-import com.epam.onadtochyi.ai.task.registry.ConversationRegistry
+import com.epam.onadtochyi.ai.task.conversation.ConversationRegistry
 
 import scala.util.{Failure, Success}
 
