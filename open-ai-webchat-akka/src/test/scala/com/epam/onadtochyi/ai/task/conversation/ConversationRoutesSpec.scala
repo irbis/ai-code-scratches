@@ -68,7 +68,7 @@ class ConversationRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures
       }
     }
 
-    "be able to add convesation (POST /conversations)" in withCleanDatabase {
+    "be able to add conversation (POST /conversations)" in withCleanDatabase {
       val request = Post("/conversation/add-new-conversation")
 
       request ~> routes ~> check {

@@ -6,6 +6,7 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.util.Timeout
+import com.epam.onadtochyi.ai.task.conversation.ConversationActionPerfomedStatus.{DONE, ERR}
 import com.epam.onadtochyi.ai.task.conversationmessage.ConversationMessageRepositoryActor
 import com.epam.onadtochyi.ai.task.conversationmessage.ConversationMessageRepositoryActor.{ConversationMessageActionPerformed, CreateConversationMessageRequest}
 
@@ -37,4 +38,39 @@ class ConversationMessageRoutes (
       }
     }
   }
+
+  private def getConversationMessage(messageId: String): Future[ConversationMessageActionPerformed] =
+    conversationMessageRepositoryActor.ask(ConversationMessageRepositoryActor.GetConversationMessage(messageId, _))
+
+  private val getConversationMessageRoute: Route = {
+    path("conversation" / "messages" / Segment) { messageId =>
+      get {
+        onSuccess(getConversationMessage(messageId)) { performed =>
+          performed.status match {
+            case DONE => complete(StatusCodes.OK, performed)
+            case ERR => complete(StatusCodes.BadRequest, performed.message)
+          }
+        }
+      }
+    }
+  }
+
+  private def deleteConversationMessage(messageId: String): Future[ConversationMessageActionPerformed] =
+    conversationMessageRepositoryActor.ask(ConversationMessageRepositoryActor.DeleteConversationMessage(messageId, _))
+
+  private val deleteConversationMessageRoute: Route = {
+    path("conversation" / "messages" / Segment) { messageId =>
+      delete {
+        onSuccess(deleteConversationMessage(messageId)) { performed =>
+          performed.status match {
+            case DONE => complete(StatusCodes.OK, performed)
+            case ERR => complete(StatusCodes.BadRequest, performed.message)
+          }
+        }
+      }
+    }
+  }
+
+  val conversationMessageRoutes: Route =
+    createConversationMessageRoute ~ getConversationMessageRoute ~ deleteConversationMessageRoute
 }

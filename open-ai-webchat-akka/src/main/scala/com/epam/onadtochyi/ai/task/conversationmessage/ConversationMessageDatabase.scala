@@ -9,7 +9,7 @@ import slick.jdbc.JdbcType
 
 import scala.concurrent.{ExecutionContext, Future}
 
-case class ConversationMessageRow(id: UUID, conversationId: UUID, content: String, role: Role)
+case class ConversationMessageRow(id: UUID, conversationId: UUID, role: Role, content: String)
 
 class ConversationMessageTable(tag: Tag) extends Table[ConversationMessageRow](tag, "CONVERSATIONS_MESSAGE") {
   implicit val roleColumnType: BaseTypedType[Role] with JdbcType[Role] =
@@ -25,7 +25,7 @@ class ConversationMessageTable(tag: Tag) extends Table[ConversationMessageRow](t
 
   def role = column[Role]("ROLE")
 
-  def * = (id, conversationId, content, role) <> (ConversationMessageRow.tupled, ConversationMessageRow.unapply)
+  def * = (id, conversationId, role, content) <> (ConversationMessageRow.tupled, ConversationMessageRow.unapply)
 }
 
 class ConversationMessageDatabase(db: Database)(implicit ec: ExecutionContext) {

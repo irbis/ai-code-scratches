@@ -6,5 +6,5 @@ import io.jvm.uuid._
 case class Message(id: UUID = UUID.random, role: Role, content: String)
 
 object Message {
-  def apply(role: Role, content: String): Message = Message(role = role, content = content)
+  def apply(role: Role, content: String): Message = Message(UUID.random, role = role, content = content)
 }
