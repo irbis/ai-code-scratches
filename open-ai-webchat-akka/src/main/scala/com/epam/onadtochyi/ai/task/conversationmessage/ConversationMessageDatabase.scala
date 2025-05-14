@@ -7,7 +7,7 @@ import slick.ast.BaseTypedType
 import slick.jdbc.HsqldbProfile.api._
 import slick.jdbc.JdbcType
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 case class ConversationMessageRow(id: UUID, conversationId: UUID, role: Role, content: String)
 
@@ -28,7 +28,7 @@ class ConversationMessageTable(tag: Tag) extends Table[ConversationMessageRow](t
   def * = (id, conversationId, role, content) <> (ConversationMessageRow.tupled, ConversationMessageRow.unapply)
 }
 
-class ConversationMessageDatabase(db: Database)(implicit ec: ExecutionContext) {
+class ConversationMessageDatabase(db: Database) {
   private val messages = TableQuery[ConversationMessageTable]
 
   def createSchema(): Future[Unit] = {

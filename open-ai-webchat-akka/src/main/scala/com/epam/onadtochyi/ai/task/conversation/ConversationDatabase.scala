@@ -1,9 +1,9 @@
 package com.epam.onadtochyi.ai.task.conversation
 
+import io.jvm.uuid._
 import slick.jdbc.HsqldbProfile.api._
 
-import scala.concurrent.{ExecutionContext, Future}
-import io.jvm.uuid._
+import scala.concurrent.Future
 
 case class ConversationRow(id: UUID, title: String)
 
@@ -14,7 +14,7 @@ class ConversationsTable(tag: Tag) extends Table[ConversationRow](tag, "CONVERSA
   def * = (id, title) <> (ConversationRow.tupled, ConversationRow.unapply)
 }
 
-class ConversationDatabase(db: Database)(implicit ec: ExecutionContext) {
+class ConversationDatabase(db: Database) {
   private val conversations = TableQuery[ConversationsTable]
 
   def createSchema(): Future[Unit] = {

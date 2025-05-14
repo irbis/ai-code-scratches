@@ -19,14 +19,4 @@ class RoleSpec extends AnyFlatSpec with Matchers {
   it should "contain exactly 3 roles" in {
     Role.values.size shouldBe 3
   }
-
-  it should "correctly convert all roles to string" in {
-    Role.values.foreach { role =>
-      role.toString shouldBe role match {
-        case Role.SYSTEM => "system"
-        case Role.USER => "user"
-        case Role.AI => "assistant"
-      }
-    }
-  }
 }

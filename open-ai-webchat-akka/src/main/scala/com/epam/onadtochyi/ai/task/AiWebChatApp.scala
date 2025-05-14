@@ -4,7 +4,9 @@ import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.Directives._
 import com.epam.onadtochyi.ai.task.conversation.ConversationRegistry
+import com.epam.onadtochyi.ai.task.conversationmessage.ConversationMessageRepositoryActor
 
 import scala.util.{Failure, Success}
 
@@ -33,8 +35,13 @@ object AiWebChatApp {
       val conversationRegistryActor = context.spawn(ConversationRegistry(DatabaseSetup.conversationDb), "ConversationRegistryActor")
       context.watch(conversationRegistryActor) // is watching for actors life cycle
 
-      val routes = new ConversationRoutes(conversationRegistryActor)
-      startHttpServer(routes.conversationRoutes)
+      val conversationMessageRegistryActor = context.spawn(ConversationMessageRepositoryActor(DatabaseSetup.conversationMessageDb), "ConversationMessageRegistryActor")
+      context.watch(conversationMessageRegistryActor)
+      
+      val conversationRoutes = new ConversationRoutes(conversationRegistryActor).conversationRoutes
+      val conversationMessageRoutes = new ConversationMessageRoutes(conversationMessageRegistryActor).conversationMessageRoutes
+
+      startHttpServer(conversationRoutes ~ conversationMessageRoutes)
 
       Behaviors.empty
     }
