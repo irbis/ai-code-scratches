@@ -33,4 +33,39 @@ lazy val root = (project in file(".")).
       "com.typesafe.akka" %% "akka-actor-testkit-typed" % akkaVersion     % Test,
       "org.scalatest"     %% "scalatest"                % "3.2.12"        % Test
     )
+  ).aggregate(aiWebChatApp)
+
+// usefull web links:
+// Akka http intro: https://doc.akka.io/libraries/akka-http/current/introduction.html
+// About onion architecture: https://faun.pub/the-practical-onion-architecture-the-onion-that-doesnt-make-you-cry-f48e1b88355
+// Example of implementation of onion architecture on java: https://github.com/splaw88/onion-architecture
+
+lazy val aiWebChatApp = (project in file("ai-web-chat-app")).
+  settings(
+    inThisBuild(List(
+      organization    := "com.epam.onadtochyi.ai",
+      scalaVersion    := "2.13.16",
+      resolvers += "Akka library repository".at("https://repo.akka.io/maven")
+    )),
+    name := "ai-web-chat-app",
+    libraryDependencies ++= Seq(
+      "com.typesafe.akka" %% "akka-actor-typed"         % akkaVersion,
+      "com.typesafe.akka" %% "akka-stream"              % akkaVersion,
+      "com.typesafe.akka" %% "akka-pki"                 % akkaVersion,
+      "com.typesafe.akka" %% "akka-http"                % akkaHttpVersion,
+      "com.typesafe.akka" %% "akka-http-spray-json"     % akkaHttpVersion,
+      "io.jvm.uuid"       %% "scala-uuid"               % "0.3.1"
+    )
+  ).dependsOn(domain)
+
+val domain = (project in file("domain")).
+  settings(
+    inThisBuild(List(
+      organization    := "com.epam.onadtochyi.ai",
+      scalaVersion    := "2.13.16"
+    )),
+    name := "domain",
+    libraryDependencies ++= Seq(
+      "io.jvm.uuid"       %% "scala-uuid"               % "0.3.1"
+    )
   )
