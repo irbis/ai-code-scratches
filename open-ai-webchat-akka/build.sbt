@@ -70,3 +70,15 @@ val domain = (project in file("domain")).
       "io.jvm.uuid"       %% "scala-uuid"               % "0.3.1"
     )
   )
+
+val repositoryInterface = (project in file("repositoryinterface")).
+  settings(
+    inThisBuild(List(
+      organization    := "com.epam.onadtochyi.ai",
+      scalaVersion    := "2.13.16"
+    )),
+    name := "repositoryinterface",
+    libraryDependencies ++= Seq(
+      "io.jvm.uuid"       %% "scala-uuid"               % "0.3.1"
+    )
+  ).dependsOn(domain)
