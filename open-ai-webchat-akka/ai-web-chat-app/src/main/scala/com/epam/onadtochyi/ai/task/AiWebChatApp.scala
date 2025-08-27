@@ -16,16 +16,16 @@ object AiWebChatApp extends AiJsonFormat {
   implicit val executionContext: ExecutionContextExecutor = system.executionContext
 
   def main(args: Array[String]): Unit = {
-    
+
     val route = {
       concat(
-        get {
-          pathPrefix("version") {
+        pathPrefix("version") {
+          get {
             complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "0.1"))
           }
         },
-        get {
-          pathPrefix("conversation" / LongNumber) { id =>
+        pathPrefix("conversation" / LongNumber) { id =>
+          get {
             val demoConversation = Conversation(title = s"Demo Conversation for tests with $id")
             complete(demoConversation)
           }

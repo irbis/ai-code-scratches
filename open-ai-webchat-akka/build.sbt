@@ -48,6 +48,7 @@ lazy val aiWebChatApp = (project in file("ai-web-chat-app")).
       resolvers += "Akka library repository".at("https://repo.akka.io/maven")
     )),
     name := "ai-web-chat-app",
+    Compile / run / mainClass := Some("com.epam.onadtochyi.ai.task.AiWebChatApp"),
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-actor-typed"         % akkaVersion,
       "com.typesafe.akka" %% "akka-stream"              % akkaVersion,
