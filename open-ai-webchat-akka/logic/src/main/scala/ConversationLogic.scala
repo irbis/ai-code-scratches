@@ -14,6 +14,9 @@ class ConversationLogic (val conversationRepository: ConversationRepository)
     conversation
   }
 
+  override def getAllConversations: List[Conversation] =
+    conversationRepository.getAllConversations.toList
+
   override def createConversation(conversation: Conversation): Unit =
     conversationRepository.createConversation(conversation)
 

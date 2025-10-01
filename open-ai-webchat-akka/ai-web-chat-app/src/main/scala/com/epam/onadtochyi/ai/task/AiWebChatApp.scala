@@ -3,11 +3,13 @@ package com.epam.onadtochyi.ai.task
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
+import akka.http.scaladsl.model.{ContentTypes, HttpEntity, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route.seal
 import com.epam.onadtochyi.ai.task.domain.model.Conversation
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import com.epam.onadtochyi.ai.task.logic.ConversationLogic
+import com.epam.onadtochyi.ai.task.services.ConversationService
 
 import scala.concurrent.ExecutionContextExecutor
 
@@ -27,7 +29,13 @@ object AiWebChatApp extends AiJsonFormat {
         pathPrefix("conversation" / LongNumber) { id =>
           get {
             val demoConversation = Conversation(title = s"Demo Conversation for tests with $id")
-            complete(demoConversation)
+            new ConversationLogic(ConversationRepositoryListImpl).createConversation(demoConversation)
+            complete(StatusCodes.Created)
+          }
+        },
+        pathPrefix("convesations") {
+          get {
+            complete(new ConversationLogic(ConversationRepositoryListImpl).getAllConversations)
           }
         }
       )

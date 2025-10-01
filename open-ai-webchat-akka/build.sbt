@@ -56,9 +56,11 @@ lazy val aiWebChatApp = (project in file("ai-web-chat-app")).
       "com.typesafe.akka" %% "akka-pki"                 % akkaVersion,
       "com.typesafe.akka" %% "akka-http"                % akkaHttpVersion,
       "com.typesafe.akka" %% "akka-http-spray-json"     % akkaHttpVersion,
-      "io.jvm.uuid"       %% "scala-uuid"               % "0.3.1"
+      "io.jvm.uuid"       %% "scala-uuid"               % "0.3.1",
+
+      "org.scalatest"     %% "scalatest"                % "3.2.12"        % Test
     )
-  ).dependsOn(domain)
+  ).dependsOn(domain, repositoryInterface, logic)
 
 // all project domain objects: conversation, etc.
 val domain = (project in file("domain")).

@@ -15,5 +15,5 @@ trait AiJsonFormat {
   }
 
   implicit val conversationFormat: RootJsonFormat[Conversation] = jsonFormat2(Conversation.apply)
-
+  implicit val conversationSeqFormat: RootJsonFormat[List[Conversation]] = listFormat[Conversation]
 }

@@ -6,6 +6,7 @@ import io.jvm.uuid._
 trait ConversationService {
   def createConversation(title: String): Conversation
   def createConversation(conversation: Conversation)
+  def getAllConversations: List[Conversation]
   def getConversation(uuid: UUID) : Option[Conversation]
   def updateConversation(conversation: Conversation)
   def deleteConversation(conversation: Conversation)
