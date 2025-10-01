@@ -40,6 +40,7 @@ lazy val root = (project in file(".")).
 // About onion architecture: https://faun.pub/the-practical-onion-architecture-the-onion-that-doesnt-make-you-cry-f48e1b88355
 // Example of implementation of onion architecture on java: https://github.com/splaw88/onion-architecture
 
+// application itself
 lazy val aiWebChatApp = (project in file("ai-web-chat-app")).
   settings(
     inThisBuild(List(
@@ -59,6 +60,7 @@ lazy val aiWebChatApp = (project in file("ai-web-chat-app")).
     )
   ).dependsOn(domain)
 
+// all project domain objects: conversation, etc.
 val domain = (project in file("domain")).
   settings(
     inThisBuild(List(
@@ -71,6 +73,7 @@ val domain = (project in file("domain")).
     )
   )
 
+// repository interfaces, no code related to particular data storage
 val repositoryInterface = (project in file("repositoryinterface")).
   settings(
     inThisBuild(List(
@@ -82,3 +85,23 @@ val repositoryInterface = (project in file("repositoryinterface")).
       "io.jvm.uuid"       %% "scala-uuid"               % "0.3.1"
     )
   ).dependsOn(domain)
+
+// application services interfaces without any implementation
+val services = (project in file("services")).
+  settings(
+    inThisBuild(List(
+      organization    := "com.epam.onadtochyi.ai",
+      scalaVersion    := "2.13.16"
+    )),
+    name := "services"
+  ).dependsOn(domain)
+
+// logic contains implementation of services
+val logic = (project in file("logic")).
+  settings(
+    inThisBuild(List(
+      organization    := "com.epam.onadtochyi.ai",
+      scalaVersion    := "2.13.16"
+    )),
+    name := "logic"
+  ).dependsOn(services, repositoryInterface)
