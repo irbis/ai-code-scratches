@@ -6,8 +6,6 @@ lazy val uuidDependency = Seq(
   "io.jvm.uuid" %% "scala-uuid" % "0.3.1"
 )
 
-resolvers += "Akka library repository".at("https://repo.akka.io/maven")
-
 // Run in a separate JVM, to make sure sbt waits until all threads have
 // finished before returning.
 // If you want to keep the application running while executing other
@@ -16,7 +14,8 @@ fork := true
 
 inThisBuild(List(
   organization := "com.epam.onadtochyi.ai",
-  scalaVersion := "2.13.16"
+  scalaVersion := "2.13.16",
+  resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 ))
 
 lazy val root = (project in file(".")).
