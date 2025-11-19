@@ -2,6 +2,10 @@ lazy val akkaHttpVersion = "10.7.0"
 lazy val akkaVersion    = "2.10.3"
 lazy val slickVersion   = "3.5.0"
 
+lazy val uuidDependency = Seq(
+  "io.jvm.uuid" %% "scala-uuid" % "0.3.1"
+)
+
 resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 
 // Run in a separate JVM, to make sure sbt waits until all threads have
@@ -10,12 +14,13 @@ resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 // sbt tasks, consider https://github.com/spray/sbt-revolver/
 fork := true
 
+inThisBuild(List(
+  organization := "com.epam.onadtochyi.ai",
+  scalaVersion := "2.13.16"
+))
+
 lazy val root = (project in file(".")).
   settings(
-    inThisBuild(List(
-      organization    := "com.epam.onadtochyi.ai",
-      scalaVersion    := "2.13.16"
-    )),
     name := "open-ai-webchat-akka",
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-http"                % akkaHttpVersion,
@@ -43,20 +48,14 @@ lazy val root = (project in file(".")).
 // application itself
 lazy val aiWebChatApp = (project in file("ai-web-chat-app")).
   settings(
-    inThisBuild(List(
-      organization    := "com.epam.onadtochyi.ai",
-      scalaVersion    := "2.13.16",
-      resolvers += "Akka library repository".at("https://repo.akka.io/maven")
-    )),
     name := "ai-web-chat-app",
     Compile / run / mainClass := Some("com.epam.onadtochyi.ai.task.AiWebChatApp"),
-    libraryDependencies ++= Seq(
+    libraryDependencies ++= uuidDependency ++ Seq(
       "com.typesafe.akka" %% "akka-actor-typed"         % akkaVersion,
       "com.typesafe.akka" %% "akka-stream"              % akkaVersion,
       "com.typesafe.akka" %% "akka-pki"                 % akkaVersion,
       "com.typesafe.akka" %% "akka-http"                % akkaHttpVersion,
       "com.typesafe.akka" %% "akka-http-spray-json"     % akkaHttpVersion,
-      "io.jvm.uuid"       %% "scala-uuid"               % "0.3.1",
 
       "org.scalatest"     %% "scalatest"                % "3.2.12"        % Test
     )
@@ -65,45 +64,25 @@ lazy val aiWebChatApp = (project in file("ai-web-chat-app")).
 // all project domain objects: conversation, etc.
 val domain = (project in file("domain")).
   settings(
-    inThisBuild(List(
-      organization    := "com.epam.onadtochyi.ai",
-      scalaVersion    := "2.13.16"
-    )),
     name := "domain",
-    libraryDependencies ++= Seq(
-      "io.jvm.uuid"       %% "scala-uuid"               % "0.3.1"
-    )
+    libraryDependencies ++= uuidDependency
   )
 
 // repository interfaces, no code related to particular data storage
 val repositoryInterface = (project in file("repositoryinterface")).
   settings(
-    inThisBuild(List(
-      organization    := "com.epam.onadtochyi.ai",
-      scalaVersion    := "2.13.16"
-    )),
     name := "repositoryinterface",
-    libraryDependencies ++= Seq(
-      "io.jvm.uuid"       %% "scala-uuid"               % "0.3.1"
-    )
+    libraryDependencies ++= uuidDependency
   ).dependsOn(domain)
 
 // application services interfaces without any implementation
 val services = (project in file("services")).
   settings(
-    inThisBuild(List(
-      organization    := "com.epam.onadtochyi.ai",
-      scalaVersion    := "2.13.16"
-    )),
     name := "services"
   ).dependsOn(domain)
 
 // logic contains implementation of services
 val logic = (project in file("logic")).
   settings(
-    inThisBuild(List(
-      organization    := "com.epam.onadtochyi.ai",
-      scalaVersion    := "2.13.16"
-    )),
     name := "logic"
   ).dependsOn(services, repositoryInterface)
